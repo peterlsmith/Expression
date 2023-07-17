@@ -1,0 +1,16 @@
+apply plugin: 'java'
+
+repositories { 
+    mavenCentral() 
+}
+
+dependencies {
+    testImplementation('junit:junit:4.13.2')
+}
+
+jar {
+    archiveBaseName = 'expression'
+    archiveVersion =  '1.0'
+}
+
+
