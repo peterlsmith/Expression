@@ -8,58 +8,6 @@ import java.lang.reflect.Method;
 
 
 
-/**
- * Lambda interface used to implement a functional expression which takes a no
- * arguments.
- */
-@FunctionalInterface
-interface Function0 {
-    /**
-     * Evaluate this function.
-     *
-     * @param context  the context in which the expression is being evaluated
-     * @return         an object representing the result of the evaluation.
-     * @throws ExpressionError on error
-     */
-    Object eval(ExpressionContext context) throws ExpressionError;
-}
-
-
-/**
- * Lambda interface used to implement a functional expression which takes a single 
- * argument.
- */
-@FunctionalInterface
-interface Function1 {
-    /**
-     * Evaluate this function.
-     *
-     * @param context  the context in which the expression is being evaluated
-     * @param arg1     a value to pass through as an argument to the function
-     * @return         an object representing the result of the evaluation.
-     * @throws ExpressionError on error
-     */
-    Object eval(ExpressionContext context, Object arg1) throws ExpressionError;
-}
-
-
-/**
- * Lambda interface used to implement a functional expression which takes two 
- * arguments.
- */
-@FunctionalInterface
-interface Function2 {
-    /**
-     * Evaluate this function.
-     *
-     * @param context  the context in which the expression is being evaluated
-     * @param arg1     the first argument to the function
-     * @param arg2     the second argument to the function
-     * @return         an object representing the result of the evaluation.
-     * @throws ExpressionError on error
-     */
-    Object eval(ExpressionContext context, Object arg1, Object arg2) throws ExpressionError;
-}
 
 
 
@@ -67,6 +15,58 @@ interface Function2 {
  * Provides basic sets of functions that can be registered (if desired).
  */
 public class Functions {
+    /**
+    * Lambda interface used to implement a functional expression which takes a no
+    * arguments.
+    */
+    @FunctionalInterface
+    public static interface Function0 {
+        /**
+        * Evaluate this function.
+        *
+        * @param context  the context in which the expression is being evaluated
+        * @return         an object representing the result of the evaluation.
+        * @throws ExpressionError on error
+        */
+        Object eval(ExpressionContext context) throws ExpressionError;
+    }
+
+
+    /**
+    * Lambda interface used to implement a functional expression which takes a single 
+    * argument.
+    */
+    @FunctionalInterface
+    public static interface Function1 {
+        /**
+        * Evaluate this function.
+        *
+        * @param context  the context in which the expression is being evaluated
+        * @param arg1     a value to pass through as an argument to the function
+        * @return         an object representing the result of the evaluation.
+        * @throws ExpressionError on error
+        */
+        Object eval(ExpressionContext context, Object arg1) throws ExpressionError;
+    }
+
+
+    /**
+    * Lambda interface used to implement a functional expression which takes two 
+    * arguments.
+    */
+    @FunctionalInterface
+    public static interface Function2 {
+        /**
+        * Evaluate this function.
+        *
+        * @param context  the context in which the expression is being evaluated
+        * @param arg1     the first argument to the function
+        * @param arg2     the second argument to the function
+        * @return         an object representing the result of the evaluation.
+        * @throws ExpressionError on error
+        */
+        Object eval(ExpressionContext context, Object arg1, Object arg2) throws ExpressionError;
+    }
 
 
     /**
@@ -140,6 +140,9 @@ public class Functions {
         Parser.registerFunction(Functions.create("acos", (context, arg1) -> Math.acos(Operators.toFloat(arg1))));
         Parser.registerFunction(Functions.create("asin", (context, arg1) -> Math.asin(Operators.toFloat(arg1))));
         Parser.registerFunction(Functions.create("atan", (context, arg1) -> Math.atan(Operators.toFloat(arg1))));
+        Parser.registerFunction(Functions.create("cosh", (context, arg1) -> Math.cosh(Operators.toFloat(arg1))));
+        Parser.registerFunction(Functions.create("sinh", (context, arg1) -> Math.sinh(Operators.toFloat(arg1))));
+        Parser.registerFunction(Functions.create("tanh", (context, arg1) -> Math.tanh(Operators.toFloat(arg1))));
         Parser.registerFunction(Functions.create("rad", (context, arg1) -> Math.toRadians(Operators.toFloat(arg1))));
         Parser.registerFunction(Functions.create("deg", (context, arg1) -> Math.toDegrees(Operators.toFloat(arg1))));
         Parser.registerFunction(Functions.create("exp", (context, arg1) -> Math.exp(Operators.toFloat(arg1))));
