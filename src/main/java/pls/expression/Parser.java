@@ -564,8 +564,9 @@ public class Parser {
 
         final ExpressionContext context = new ExpressionContext();
         String expression = null;
+        int maxArg = args.length - 1;
 
-        for (int i = 0; i < args.length - 1; ++i) {
+        for (int i = 0; i <= maxArg; ++i) {
             if (args[i].equals("-h") || args[i].equals("--help")) {
                 System.out.println("Options:");
                 System.out.println("  -h               Print out this help");
@@ -575,23 +576,23 @@ public class Parser {
                 System.out.println("  -f name=value    Set floating point variable with name <name> to <value>");
                 System.exit(0);
             }
-            else if (args[i].equals("-e")) {
+            else if (args[i].equals("-e") && i < maxArg) {
                 expression = args[++i];
             }
-            else if (args[i].equals("-s")) {
+            else if (args[i].equals("-s") && i < maxArg) {
                 String[] kv = args[++i].split("=", 2);
                 context.set(kv[0], kv[1]);
             }
-            else if (args[i].equals("-i")) {
+            else if (args[i].equals("-i") && i < maxArg) {
                 String[] kv = args[++i].split("=", 2);
                 context.set(kv[0], Integer.parseInt(kv[1]));
             }
-            else if (args[i].equals("-f")) {
+            else if (args[i].equals("-f") && i < maxArg) {
                 String[] kv = args[++i].split("=", 2);
                 context.set(kv[0], Double.parseDouble(kv[1]));
             }
             else {
-                System.out.println("Unsupported argument '" + args[i] + "'");
+                System.err.println("Unsupported argument '" + args[i] + "'");
                 System.exit(1);
             }
         }
