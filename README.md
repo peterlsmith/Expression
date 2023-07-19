@@ -203,7 +203,7 @@ The Expression library can be extended with new functions and operators if requi
     Parser.registerFunction(Functions.create("tax", (context, v) -> Operators.toFloat(v) * 0.065));
 </pre>
 
-For more examples of registering functions, check the {@link Functions} source code.
+For more examples of registering functions, check the Functions source code.
 <p>Operators can similarly be created.
 
 <pre>
@@ -216,6 +216,6 @@ For more examples of registering functions, check the {@link Functions} source c
     Parser.registerOperator(Operators.createArithmetic("%", (l, r) -> l % r, (l, r) -> l % r), 12);
 </pre>
 
-Note that in this example, we are creating an arithmetic type operator which requires two operator functions, the first one for integer operations, the second for floating point. In this case they are identical. The final argument is an integer value representing the operator precedence. For more examples of registering operators, check the {@link Operators} source code.
+Note that in this example, we are creating an arithmetic type operator which requires two operator functions, the first one for integer operations, the second for floating point. In this case they are identical. The final argument is an integer value representing the operator precedence. For more examples of registering operators, check the Operators source code.
 
 
