@@ -215,7 +215,7 @@ public class Parser {
      * This method is used to register new binary operators (only binary operators have precedence).
      * 
      * @param precedence  the precedence level (refer to Javascript operator precedence levels)
-     * @param factory     a factory instance that can be used to create an instance of the operator
+     * @param factory     a factory that can be used to create an instance of the operator
      */
     public static void registerOperator(Factory factory, int precedence) {
         biOperatorMap.put(factory.getName(), factory);

@@ -68,7 +68,7 @@ You can use the -i, -s, and -f option to set integer, string, and floating point
 > java -cp dist/expression-1.0.jar pls.expression.Parser -i delta=14 -e "2 * delta"  
 > 28  
 
-If the -e option is omitted, the evaluator will enter interactive mode. You can then repeatedly type in an expression and press &lt;enter> to evaluate it. To exit interactive mode, simple press &lt;ctrl> d;
+If the -e option is omitted, the evaluator will enter interactive mode. You can then repeatedly type in an expression and press &lt;enter> to evaluate it. To exit interactive mode, press &lt;ctrl> d;
 
 ---
 
@@ -191,7 +191,7 @@ Note that once parsed, you can repeatedly evaluate the expression with different
 Note that the context values do not need to be configured when the expression is parsed, only before it is evaluated.
 
 ### Extending
-The Expression library can be extended with new functions and operators if required. To add a new function:
+The Expression library can be extended with new functions and operators if required. To add a new function we use the <code>Parser.registerFunction</code> method. This takes a <code>Factory</code> object that will be used to create instances of the new function.
 
 <pre>
     import pls.expression.Functions;
@@ -200,10 +200,67 @@ The Expression library can be extended with new functions and operators if requi
 
     /* Create a function to calculate the tax on an item */
 
-    Parser.registerFunction(Functions.create("tax", (context, v) -> Operators.toFloat(v) * 0.065));
+    Parser.registerFunction(
+        Functions.create(
+            "tax",
+            (context, v) -> Operators.toFloat(v) * 0.065));
+</pre>
+In this example we use a utility method <code>Functions.create</code> to create the factory object, providing it with a lambda method representing the function we are registering. However, you may create your own factory instances directly by extending the <code>Factory</code> class.
+
+This utility method provides support for registering functions that take zero, one, or two arguments, e.g:
+
+<pre>
+    /* Function with zero arguments */
+    
+    Parser.registerFunction(
+        Functions.create(
+            "random", (context) -> Math.random()));
+
+    /* Function with one argument */
+    
+    Parser.registerFunction(
+        Functions.create(
+            "toString", (context, value) -> Objects.toString(value)));
+
+
+    /* Function with two arguments */
+    
+    Parser.registerFunction(
+        Functions.create(
+            "toStringOrDefault", (context, value, default) -> Objects.toString(value, default)));
 </pre>
 
-For more examples of registering functions, check the Functions source code.
+To register functions that take more than two arguments, you will need to provide a custom implementation of an expression factory. The following example implements a concatenation function which takes any number of arguments.
+<pre>
+    Parser.registerFunction(
+        new Factory("concat") {
+            @Override
+            public Expression create(Expression ...input) throws ExpressionError {
+                return new NamedExpression("concat") {
+                    @Override
+                    public Object eval(ExpressionContext context) throws ExpressionError {
+                        String[] values = new String[input.length];
+                        for (int i = 0; i < input.length; ++i) {
+                            values[i] = input[i].eval(context).toString();
+                        }
+                        return String.join("", values);
+                    }
+                    @Override
+                    public String toString() {
+                        return "concat(" + 
+                            String.join(",", Arrays.stream(input).map((e) -> e.toString()).toArray(String[]::new))
+                            + ")";
+                    }
+                };
+            }
+        }
+    );
+</pre>
+For more examples of registering functions, check the <code>Functions</code> source code.  
+
+
+
+
 <p>Operators can similarly be created.
 
 <pre>
@@ -213,9 +270,59 @@ For more examples of registering functions, check the Functions source code.
 
     /* Create a modulo operator */
 
-    Parser.registerOperator(Operators.createArithmetic("%", (l, r) -> l % r, (l, r) -> l % r), 12);
+    Parser.registerOperator(
+        Operators.createArithmetic(
+            "%",
+            (l, r) -> l % r, (l, r) -> l % r), 12);
+</pre>
+As with registering functions, we use a utility method, in this case, <code>Operators.createArithmetic</code>, to create a factory object. Arithmetic operators require two functions - one for integer operations and another for floating point operations, as well as an operator precedence value. In most cases, the lambda functions for these will appear identical (though they will be discreet functions with different argument types). You may also use  <code>Operators.createUnary</code>, <code>Operators.createBinary</code>, and <code>Operators.createRelational</code> utility methods for registering unary, binary, and relational operators.  
+
+Please note the differences between the operators as follows:  
+
+
+- **Unary operators**  
+Unary operators take a single, unevaluated expression. They are responsible for evaluating the expression with the expression context and performing the unary operations. Unary operators may take any type of argument - integer, floating point, or string. Unary operators also do not have a precedence value - they are all implicity higher than non unary operators.  
+<pre>
+    Parser.registerOperator(
+        Operators.createUnary(
+            "#",
+            (c, e) -> MyOperators.do_somthing(e.eval(c))));
 </pre>
 
-Note that in this example, we are creating an arithmetic type operator which requires two operator functions, the first one for integer operations, the second for floating point. In this case they are identical. The final argument is an integer value representing the operator precedence. For more examples of registering operators, check the Operators source code.
 
+- **Binary operators**  
+Binary operators take two unevaluated expressions - a 'left' and a 'right' expression. They are responsible for evaluating the expressions as required, and performing the unary operations. Binary operators may take any type of argument - integer, floating point, or string.  
+<pre>
+    Parser.registerOperator(
+        Operators.createBinary(
+            "in", 
+            (c, l, r) -> Operators.in(l.eval(c), r.eval(c))),
+            9);
+</pre>
+
+
+- **Relational operators**  
+Relational operators take two **evaluated** expressions - i.e. a 'left' and a 'right' **value**. If non-null, these two values must be of the same type (integer, floating point, or string).
+<pre>
+    Parser.registerOperator(
+        Operators.createRelational(
+            "==",
+            (v1, v2) -> Objects.equals(v1, v2)),
+            8);
+</pre>
+
+
+- **Arithmetic operators**  
+Arithmetic operators take two **evaluated** expressions - i.e. a 'left' and a 'right' **value**. These two values must be non-null, and of the same type - either integer or floating point.
+<pre>
+    Parser.registerOperator(
+        Operators.createArithmetic(
+            "+",
+            (l, r) -> l + r,  /* Integer lambda */
+            (l, r) -> l + r), /* Floating point lambda */
+            11);
+</pre>
+
+
+Please note that functions and operators cannot be overloaded using different numbers of arguments.  
 
