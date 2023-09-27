@@ -177,6 +177,11 @@ public class Parser {
     private static Pattern expansions = Pattern.compile("(\\(|\\)|\\[|\\]|==|!=|=~|>=|>|<=|<|,|\\+|-|\\*|/|!|@|#|\\$|%|^|&)");
 
 
+    /** Regular expression used to identify dot (member) operator */
+
+    private static Pattern dots = Pattern.compile("((\\w\\d*)\\s*\\.\\s*([a-zA-Z_]))");
+
+
     /** Regular expression used to identify integer tokens */
 
     private static Pattern integerPattern = Pattern.compile("\\d+");
@@ -268,6 +273,8 @@ public class Parser {
      * @see Expression
      */
     public Expression parse(String expression) throws ExpressionError {
+        assert expression != null : "Null expression";
+
         /*
          * First thing to do is process string constants (quoted strings), since these may contain spaces that
          * would impact the tokenization. We temporarily pull them out and store them, replacing them with a
@@ -280,8 +287,13 @@ public class Parser {
 
         /* Next, expand (insert spaces) around various character sequences to make tokenization easier */
 
-        Matcher m3 = expansions.matcher(expr);
-        expr = m3.replaceAll((match) -> String.format(" %s ", m3.group(1)));
+        Matcher m2 = expansions.matcher(expr);
+        expr = m2.replaceAll((match) -> String.format(" %s ", m2.group(1)));
+
+        /* Pad a dot '.' between two words (not numbers) with spaces so it gets interpreted as an operator */
+
+        Matcher m3 = dots.matcher(expr);
+        expr = m3.replaceAll((match) -> String.format("%s . %s", m3.group(2), m3.group(3)));
 
 
         /* Now tokenize and re-insert quoted strings */
@@ -597,6 +609,7 @@ public class Parser {
             }
         }
 
+
         /* Prompt in interactive mode */
 
         if (expression == null) {
@@ -646,5 +659,16 @@ public class Parser {
         catch (Exception x) {
             x.printStackTrace();
         }
+    }
+
+    private Object toValue(String s) throws Exception {
+        if (doubleQuotes.matcher(s).matches())
+            return s;
+        else if (integerPattern.matcher(s).matches())
+            return Integer.parseInt(s);
+        else if (floatPattern.matcher(s).matches())
+            return Double.parseDouble(s);
+        
+        return null;
     }
 }

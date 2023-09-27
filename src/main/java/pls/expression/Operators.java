@@ -1,5 +1,6 @@
 package pls.expression;
 
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -41,6 +42,7 @@ public class Operators {
         Parser.registerOperator(Operators.createUnary("-", (c, e) -> Operators.neg(e.eval(c))));
 
         Parser.registerOperator(Operators.createBinary("in", (c, l, r) -> Operators.in(l.eval(c), r.eval(c))), 9);
+        Parser.registerOperator(Operators.createBinary(".", (c, l, r) -> Operators.member(c, l, r)), 14);
     }
 
 
@@ -217,7 +219,7 @@ public class Operators {
      * @return true if the value exists in the list, false otherwise
      * @throws ExpressionError if the list is not valid
      */
-    public static Boolean in(Object left, Object right) throws ExpressionError {
+    private static Boolean in(Object left, Object right) throws ExpressionError {
         if (right == null) throw new ExpressionError("Null list passed to 'in' operator");
         if (right.getClass() != Object[].class) throw new ExpressionError("Invalid list type passed to 'in' operator");
 
@@ -226,4 +228,37 @@ public class Operators {
         }
         return false;
     }
+
+
+    /**
+     * Member operator.
+     * <p>This provides a mechanism to access a member of a compound object (map).
+     *
+     * @param context  the expression context in which to evaluate the left expression
+     * @param left     the compound object (map)
+     * @param right    the member to extract. This is expected to be a plain string and
+     *                 does not get evaluated.
+     * @return the value extracted from the map 
+     * @throws ExpressionError if either the map or the member is invalid
+     */
+    private static Object member(ExpressionContext context, Expression left, Expression right) throws ExpressionError {
+        if (left == null) throw new ExpressionError("Null value passed to member operator");
+
+        /* Evaluate the left hand expression */
+
+        Object obj = left.eval(context);
+
+        if (obj == null) throw new ExpressionError("Expected map for left value in member operator - found null");
+        if (!(obj instanceof Map)) throw new ExpressionError("Expected map for left value in member operator");
+
+        /*
+         * Note that for the right hand expression, we do not evaluate it. While we expect a string
+         * constant (which maps to a ContextValue), technically, it could be any type of expression.
+         */
+        Map map = (Map) obj;
+        String key = right == null ? null : right.toString();
+
+        return map.get(key);
+    }
+
 }
